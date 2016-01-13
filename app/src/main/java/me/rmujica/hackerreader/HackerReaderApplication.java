@@ -2,6 +2,8 @@ package me.rmujica.hackerreader;
 
 import android.app.Application;
 
+import com.raizlabs.android.dbflow.config.FlowManager;
+
 import me.rmujica.hackerreader.inject.components.DaggerNetComponent;
 import me.rmujica.hackerreader.inject.components.NetComponent;
 import me.rmujica.hackerreader.inject.modules.AppModule;
@@ -23,6 +25,7 @@ public class HackerReaderApplication extends Application {
                 .appModule(new AppModule(this))
                 .netModule(new NetModule("http://hn.algolia.com/api/v1/"))
                 .build();
+        FlowManager.init(this);
     }
 
     public NetComponent getNetComponent() {

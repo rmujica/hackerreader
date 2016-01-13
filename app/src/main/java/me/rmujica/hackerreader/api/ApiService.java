@@ -12,7 +12,7 @@ import rx.Observable;
 public interface ApiService {
 
     // the query search could be asked as a parameter. hardcoded for now.
-    @GET("search_by_date?query=android&tags=story")
+    @GET("search_by_date?query=android")
     Observable<Envelope<Post>> getPosts();
 
 }

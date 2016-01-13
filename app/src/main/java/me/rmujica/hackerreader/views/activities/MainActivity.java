@@ -5,23 +5,20 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 
-import javax.inject.Inject;
-
-import me.rmujica.hackerreader.HackerReaderApplication;
 import me.rmujica.hackerreader.R;
-import me.rmujica.hackerreader.api.ApiManager;
-import me.rmujica.hackerreader.api.ApiService;
+import me.rmujica.hackerreader.api.PostManager;
+import me.rmujica.hackerreader.views.adapters.ItemTouchHelperCallback;
 import me.rmujica.hackerreader.views.adapters.PostsAdapter;
-import retrofit2.Retrofit;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     private PostsAdapter adapter;
-    private ApiManager mgr;
+    private PostManager mgr;
     private SwipeRefreshLayout refresh;
 
     @Override
@@ -34,14 +31,19 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         list.setHasFixedSize(false);
         list.setLayoutManager(new LinearLayoutManager(this));
 
-        adapter  = new PostsAdapter(this);
+        adapter  = new PostsAdapter(this, list);
         list.setAdapter(adapter);
+
+        // swipe adapter
+        ItemTouchHelper.Callback callback = new ItemTouchHelperCallback(adapter);
+        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+        touchHelper.attachToRecyclerView(list);
 
         refresh = (SwipeRefreshLayout) findViewById(R.id.refresh);
         refresh.setOnRefreshListener(this);
 
         // get posts
-        mgr = new ApiManager(this);
+        mgr = new PostManager(this);
         refresh.post(() -> {
             refresh.setRefreshing(true);
             getPosts();

@@ -3,7 +3,7 @@ package me.rmujica.hackerreader.inject.components;
 import javax.inject.Singleton;
 
 import dagger.Component;
-import me.rmujica.hackerreader.api.ApiManager;
+import me.rmujica.hackerreader.api.PostManager;
 import me.rmujica.hackerreader.inject.modules.AppModule;
 import me.rmujica.hackerreader.inject.modules.NetModule;
 import me.rmujica.hackerreader.views.activities.MainActivity;
@@ -18,5 +18,5 @@ public interface NetComponent {
 
     void inject(MainActivity activity);
 
-    void inject(ApiManager apiManager);
+    void inject(PostManager apiManager);
 }
