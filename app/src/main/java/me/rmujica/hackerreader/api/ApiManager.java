@@ -1,6 +1,7 @@
 package me.rmujica.hackerreader.api;
 
 import android.content.Context;
+import android.util.Log;
 
 import javax.inject.Inject;
 
@@ -25,8 +26,10 @@ public class ApiManager {
         api = retrofit.create(ApiService.class);
     }
 
-    public Observable<Post> getStories() {
-        return api.getPosts().flatMap(e -> Observable.from(e.hits)).filter(p -> p.parentId == null);
+    public Observable<Post> getPosts() {
+        // if no internet connection is detected, should get from database
+        return api.getPosts()
+                .flatMap(e -> Observable.from(e.hits));
     }
 
 }
