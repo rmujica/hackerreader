@@ -9,6 +9,7 @@ import com.raizlabs.android.dbflow.runtime.TransactionManager;
 import com.raizlabs.android.dbflow.runtime.transaction.process.ProcessModelInfo;
 import com.raizlabs.android.dbflow.runtime.transaction.process.SaveModelTransaction;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
+import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import java.util.List;
 
@@ -19,6 +20,7 @@ import me.rmujica.hackerreader.models.Post;
 import me.rmujica.hackerreader.models.Post_Table;
 import retrofit2.Retrofit;
 import rx.Observable;
+import rx.schedulers.Schedulers;
 
 /**
  * Created by rene on 1/10/16.
@@ -42,23 +44,26 @@ public class PostManager {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 
-        if (activeNetwork == null || !activeNetwork.isConnected()) {
-            // if no internet connection is detected, should get from database
-            List<Post> posts = SQLite.select().from(Post.class)
-                    .orderBy(Post_Table.created_at, false).queryList();
-            return Observable.from(posts)
-                    .filter(p -> p.story_url != null || p.url != null);
-        } else {
-            return api.getPosts()
-                    .flatMap(e -> {
-                        // save posts
-                        TransactionManager.getInstance()
-                                .addTransaction(new SaveModelTransaction<>(ProcessModelInfo
-                                        .withModels(e.hits)));
-                        return Observable.from(e.hits);
-                    })
-                    .filter(p -> p.story_url != null || p.url != null);
+        // retrieve existing posts
+        List<Post> existing = SQLite.select().from(Post.class)
+                .orderBy(Post_Table.created_at, false).queryList();
+
+        // try to get posts from internet
+        if (activeNetwork != null && activeNetwork.isConnected()) {
+            Observable<Post> fromNet = api.getPosts().subscribeOn(Schedulers.io())
+                    .flatMap(e -> Observable.from(e.hits))
+                    .filter(p -> !existing.contains(p)) // we are not going to save posts already in db
+                    .map(p -> {
+                        p.save();
+                        return p;
+                    });
+            return Observable.concat(Observable.from(existing), fromNet)
+                    .filter(p -> (p.story_url != null || p.url != null) && !p.hidden);
         }
+
+        // retrieve posts from db
+        return Observable.from(existing)
+                .filter(p -> (p.story_url != null || p.url != null) && !p.hidden);
     }
 
 }

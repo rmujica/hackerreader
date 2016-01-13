@@ -88,11 +88,13 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.BindingHolde
         // query the db
         Post p = SQLite.select().from(Post.class)
                 .where(Post_Table.objectID.eq(lastRemoved.objectID)).querySingle();
-        SQLite.delete().from(Post.class)
-                .where(Post_Table.objectID.eq(lastRemoved.objectID)).query();
+
+        // we are now hiding the post, not deleting it
+        p.hidden = true;
+        p.save();
 
         // show the undo stuff
-        Snackbar.make(list, R.string.done_for_now, Snackbar.LENGTH_INDEFINITE)
+        Snackbar.make(list, R.string.done_for_now, Snackbar.LENGTH_SHORT)
                 .setAction(R.string.undo, view -> {
                     posts.add(lastRemovedIndex, lastRemoved);
                     notifyItemInserted(lastRemovedIndex);
@@ -101,9 +103,9 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.BindingHolde
                         list.smoothScrollToPosition(0);
                     }
 
-                    // insert again in db
-                    TransactionManager.getInstance()
-                            .addTransaction(new SaveModelTransaction<>(ProcessModelInfo.withModels(p)));
+                    // unhide post
+                    p.hidden = false;
+                    p.save();
                 }).show();
     }
 

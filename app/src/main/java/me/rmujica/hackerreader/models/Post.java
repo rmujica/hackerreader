@@ -19,9 +19,30 @@ public class Post extends BaseModel {
     public String story_title;
     public String story_url;
     public String created_at;
+    public Boolean hidden = false;
 
     public Post() {
 
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 41;
+        result = 37 * result + objectID.hashCode();
+
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Post)) {
+            return false;
+        } else if (o == this) {
+            return true;
+        }
+
+        Post rhs = (Post) o;
+        return objectID.equals(rhs.objectID);
     }
 
 }
